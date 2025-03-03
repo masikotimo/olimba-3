@@ -9,13 +9,30 @@ from .serializers import (
     ScoreSerializer,
     GameSessionSerializer
 )
+from core.mixins import ResponseMixin
 
-class GameTypeViewSet(viewsets.ReadOnlyModelViewSet):
+class GameTypeViewSet(ResponseMixin, viewsets.ReadOnlyModelViewSet):
     queryset = GameType.objects.all()
     serializer_class = GameTypeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return self.success_response(
+            data=serializer.data,
+            message="Game types retrieved successfully"
+        )
 
-class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return self.success_response(
+            data=serializer.data,
+            message="Game type details retrieved successfully"
+        )
+
+class QuestionViewSet(ResponseMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = QuestionSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -32,8 +49,24 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(difficulty=difficulty)
             
         return queryset.order_by('?')[:limit]
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return self.success_response(
+            data=serializer.data,
+            message="Questions retrieved successfully"
+        )
 
-class ScoreViewSet(viewsets.ModelViewSet):
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return self.success_response(
+            data=serializer.data,
+            message="Question details retrieved successfully"
+        )
+
+class ScoreViewSet(ResponseMixin, viewsets.ModelViewSet):
     serializer_class = ScoreSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -44,6 +77,59 @@ class ScoreViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return self.success_response(
+            data=serializer.data,
+            message="Scores retrieved successfully"
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return self.success_response(
+            data=serializer.data,
+            message="Score details retrieved successfully"
+        )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return self.success_response(
+                data=serializer.data,
+                message="Score created successfully",
+                status_code=201
+            )
+        return self.error_response(
+            message="Failed to create score",
+            errors=serializer.errors
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return self.success_response(
+                data=serializer.data,
+                message="Score updated successfully"
+            )
+        return self.error_response(
+            message="Failed to update score",
+            errors=serializer.errors
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return self.success_response(
+            message="Score deleted successfully",
+            status_code=204
+        )
 
     @action(detail=False, methods=['get'])
     def leaderboard(self, request):
@@ -57,9 +143,12 @@ class ScoreViewSet(viewsets.ModelViewSet):
         if game_type:
             queryset = queryset.filter(game_type__name=game_type)
             
-        return Response(queryset[:limit])
+        return self.success_response(
+            data=list(queryset[:limit]),
+            message="Leaderboard retrieved successfully"
+        )
 
-class GameSessionViewSet(viewsets.ModelViewSet):
+class GameSessionViewSet(ResponseMixin, viewsets.ModelViewSet):
     serializer_class = GameSessionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -76,3 +165,56 @@ class GameSessionViewSet(viewsets.ModelViewSet):
                     user=self.request.user,
                     score=score_data['score']
                 )
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return self.success_response(
+            data=serializer.data,
+            message="Game sessions retrieved successfully"
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return self.success_response(
+            data=serializer.data,
+            message="Game session details retrieved successfully"
+        )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return self.success_response(
+                data=serializer.data,
+                message="Game session created successfully",
+                status_code=201
+            )
+        return self.error_response(
+            message="Failed to create game session",
+            errors=serializer.errors
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return self.success_response(
+                data=serializer.data,
+                message="Game session updated successfully"
+            )
+        return self.error_response(
+            message="Failed to update game session",
+            errors=serializer.errors
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return self.success_response(
+            message="Game session deleted successfully",
+            status_code=204
+        )

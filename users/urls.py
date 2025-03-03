@@ -9,4 +9,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('login/', views.LoginView.as_view(), name='login'),
+    path('password-reset/', views.PasswordResetRequestView.as_view(), name='password-reset-request'),
+    path('password-reset/confirm/', views.PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
 ]

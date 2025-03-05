@@ -4,9 +4,9 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'games', views.GameTypeViewSet)
-router.register(r'questions', views.QuestionViewSet, basename='question')
-router.register(r'scores', views.ScoreViewSet, basename='score')
-router.register(r'sessions', views.GameSessionViewSet, basename='session')
+router.register(r'scripture-sprint-questions', views.ScriptureSprintQuestionViewSet, basename='scripture-sprint-question')
+router.register(r'find-the-bible-verse-questions', views.FindTheBibleVerseQuestionViewSet, basename='find-the-bible-verse-question')
+router.register(r'bible-charades-questions', views.BibleCharadesQuestionViewSet, basename='bible-charades-question')
 
 urlpatterns = [
     path('', include(router.urls)),

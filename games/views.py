@@ -2,12 +2,16 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Sum
-from .models import GameType, Question, Score, GameSession
+from .models import GameType, Question, Score, GameSession, ScriptureSprintQuestion, FindTheBibleVerseQuestion, BibleCharadesQuestion, VerseVersion
 from .serializers import (
     GameTypeSerializer, 
     QuestionSerializer,
     ScoreSerializer,
-    GameSessionSerializer
+    GameSessionSerializer,
+    ScriptureSprintQuestionSerializer,
+    FindTheBibleVerseQuestionSerializer,
+    BibleCharadesQuestionSerializer,
+    VerseVersionSerializer
 )
 from core.mixins import ResponseMixin
 
@@ -218,3 +222,34 @@ class GameSessionViewSet(ResponseMixin, viewsets.ModelViewSet):
             message="Game session deleted successfully",
             status_code=204
         )
+
+class ScriptureSprintQuestionViewSet(ResponseMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = ScriptureSprintQuestion.objects.all()
+    serializer_class = ScriptureSprintQuestionSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    @action(detail=True, methods=['post'])
+    def add_version(self, request, pk=None):
+        question = self.get_object()
+        serializer = VerseVersionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(verse=question)
+            return self.success_response(
+                data=serializer.data,
+                message="Verse version added successfully",
+                status_code=201
+            )
+        return self.error_response(
+            message="Failed to add verse version",
+            errors=serializer.errors
+        )
+
+class FindTheBibleVerseQuestionViewSet(ResponseMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = FindTheBibleVerseQuestion.objects.all()
+    serializer_class = FindTheBibleVerseQuestionSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class BibleCharadesQuestionViewSet(ResponseMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = BibleCharadesQuestion.objects.all()
+    serializer_class = BibleCharadesQuestionSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]

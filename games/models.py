@@ -15,6 +15,49 @@ class GameType(models.Model):
         ]
     )
 
+class VerseVersion(models.Model):
+    verse = models.ForeignKey('ScriptureSprintQuestion', on_delete=models.CASCADE, related_name='versions')
+    translation = models.CharField(max_length=10)  # e.g., 'NKJV', 'KJV', 'NIV', 'ESV'
+    text = models.TextField()
+
+    class Meta:
+        unique_together = ('verse', 'translation')  # Ensure no duplicate translations for the same verse
+
+class ScriptureSprintQuestion(models.Model):
+    game_type = models.ForeignKey(GameType, on_delete=models.CASCADE, related_name='scripture_sprint_questions')
+    verse = models.CharField(max_length=100)
+    description = models.TextField()
+    pack_type = models.CharField(max_length=50)
+
+    class Meta:
+        ordering = ['?']  # Random ordering by default
+
+class FindTheBibleVerseQuestion(models.Model):
+    game_type = models.ForeignKey(GameType, on_delete=models.CASCADE, related_name='find_the_bible_verse_questions')
+    reference = models.CharField(max_length=100)
+    text = models.TextField()
+    book = models.CharField(max_length=50)
+    chapter = models.IntegerField()
+    verse = models.IntegerField()
+    options = models.JSONField()  # Store options as a JSON array
+    correct_answer = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ['?']  # Random ordering by default
+
+class BibleCharadesQuestion(models.Model):
+    game_type = models.ForeignKey(GameType, on_delete=models.CASCADE, related_name='bible_charades_questions')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    scripture = models.CharField(max_length=100)
+    difficulty = models.CharField(max_length=20)
+    image_url = models.URLField()
+    options = models.JSONField()
+    correct_answer = models.CharField(max_length=200)
+
+    class Meta:
+        ordering = ['?']  # Random ordering by default
+
 class Question(models.Model):
     game_type = models.ForeignKey(GameType, on_delete=models.CASCADE, related_name='questions')
     title = models.CharField(max_length=200)
